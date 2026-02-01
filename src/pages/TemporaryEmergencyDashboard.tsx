@@ -8,9 +8,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useApp } from '@/context/AppContext';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import EmergencyMap from '@/components/map/EmergencyMap';
-import SOSButton from '@/components/sos/SOSButton';
+import EnhancedSOSButton from '@/components/sos/EnhancedSOSButton';
 import { emergencyReasons, getHospitalById, calculateDistance, estimateETA } from '@/data/demoData';
+import { findUserByEmail, DemoUser } from '@/data/demoUsers';
 import { TemporaryEmergencyVehicle } from '@/data/types';
+import { toast } from '@/hooks/use-toast';
 import { 
   Clock, 
   MapPin, 
@@ -20,7 +22,10 @@ import {
   AlertTriangle,
   Shield,
   XCircle,
-  Navigation
+  Navigation,
+  Mail,
+  Loader2,
+  User
 } from 'lucide-react';
 
 type ViewMode = 'request' | 'approving' | 'active';
@@ -33,6 +38,11 @@ const TemporaryEmergencyDashboard = () => {
   );
   const [countdown, setCountdown] = useState<number>(0);
   
+  // Email lookup state
+  const [email, setEmail] = useState('');
+  const [isLookingUp, setIsLookingUp] = useState(false);
+  const [userFound, setUserFound] = useState<DemoUser | null>(null);
+  
   // Form state
   const [formData, setFormData] = useState({
     vehicleRegistration: '',
@@ -42,6 +52,47 @@ const TemporaryEmergencyDashboard = () => {
     reason: '',
     nearestHospitalId: '',
   });
+
+  // Email lookup handler
+  const handleEmailLookup = () => {
+    if (!email.trim()) {
+      toast({
+        title: "Enter email",
+        description: "Please enter your registered email address",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLookingUp(true);
+    
+    // Simulate API lookup
+    setTimeout(() => {
+      const user = findUserByEmail(email);
+      setIsLookingUp(false);
+      
+      if (user) {
+        setUserFound(user);
+        setFormData({
+          ...formData,
+          vehicleRegistration: user.vehicleRegistration,
+          vehicleType: user.vehicleType,
+          driverName: user.fullName,
+          driverContact: user.phone,
+        });
+        toast({
+          title: "✓ Details Found",
+          description: `Welcome back, ${user.fullName}!`,
+        });
+      } else {
+        toast({
+          title: "User not found",
+          description: "Please enter details manually or try a different email",
+          variant: "destructive",
+        });
+      }
+    }, 1500);
+  };
 
   // Find nearest hospitals based on a fixed current location (Koramangala)
   const currentLat = 12.9352;
@@ -174,6 +225,60 @@ const TemporaryEmergencyDashboard = () => {
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-4">
+                  {/* Email Lookup Section */}
+                  <div className="p-4 bg-primary/5 border border-primary/20 rounded-lg space-y-3">
+                    <div className="flex items-center gap-2 text-sm font-medium text-primary">
+                      <Mail className="w-4 h-4" />
+                      Quick Registration via Email
+                    </div>
+                    <div className="flex gap-2">
+                      <Input
+                        type="email"
+                        placeholder="Enter your registered email"
+                        value={email}
+                        onChange={e => setEmail(e.target.value)}
+                        className="flex-1"
+                      />
+                      <Button 
+                        type="button" 
+                        onClick={handleEmailLookup}
+                        disabled={isLookingUp}
+                        variant="secondary"
+                      >
+                        {isLookingUp ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          'Lookup'
+                        )}
+                      </Button>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Demo emails: ravi.kumar@gmail.com, priya.sharma@gmail.com
+                    </p>
+                  </div>
+
+                  {/* User Found Badge */}
+                  {userFound && (
+                    <div className="flex items-center gap-2 p-3 bg-success/10 border border-success/20 rounded-lg">
+                      <User className="w-4 h-4 text-success" />
+                      <span className="text-sm">
+                        <strong>{userFound.fullName}</strong> • {userFound.vehicleRegistration}
+                      </span>
+                      <Badge variant="outline" className="ml-auto text-success border-success">
+                        Verified
+                      </Badge>
+                    </div>
+                  )}
+
+                  <div className="relative">
+                    <div className="absolute inset-0 flex items-center">
+                      <span className="w-full border-t" />
+                    </div>
+                    <div className="relative flex justify-center text-xs uppercase">
+                      <span className="bg-background px-2 text-muted-foreground">Or enter manually</span>
+                    </div>
+                  </div>
+
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="vehicleReg">Vehicle Registration</Label>
@@ -396,12 +501,13 @@ const TemporaryEmergencyDashboard = () => {
 
           {/* Bottom Action Bar */}
           <div className="bg-card border-t border-border p-4 flex flex-wrap items-center gap-3">
-            {/* SOS Button for Traffic Clearance */}
-            <SOSButton
+            {/* Enhanced SOS Button for Traffic Clearance */}
+            <EnhancedSOSButton
               vehicleId={activeVehicle.id}
               vehicleRegistration={activeVehicle.registrationNumber}
               vehicleType="temporary"
               currentLocation={{ lat: activeVehicle.currentLat, lng: activeVehicle.currentLng }}
+              variant="large"
               className="flex-1 sm:flex-none"
             />
             
