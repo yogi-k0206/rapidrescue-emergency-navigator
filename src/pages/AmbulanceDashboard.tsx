@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -5,6 +6,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useApp } from '@/context/AppContext';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import EmergencyMap from '@/components/map/EmergencyMap';
+import SOSButton from '@/components/sos/SOSButton';
+import RouteComparisonPanel from '@/components/route/RouteComparisonPanel';
 import { getHospitalById } from '@/data/demoData';
 import { 
   Phone, 
@@ -21,11 +24,38 @@ import {
 
 const AmbulanceDashboard = () => {
   const { ambulances, hospitals, selectedAmbulanceId, selectAmbulance, updateAmbulance } = useApp();
+  const [selectedRouteId, setSelectedRouteId] = useState('route1');
   
   const currentAmbulance = ambulances.find(a => a.id === selectedAmbulanceId) || ambulances[0];
   const destinationHospital = currentAmbulance?.destinationHospitalId 
     ? getHospitalById(currentAmbulance.destinationHospitalId) 
     : null;
+
+  // Generate route options based on destination
+  const routeOptions = destinationHospital ? [
+    {
+      id: 'route1',
+      name: 'Via Old Airport Road',
+      distance: destinationHospital.distance || 5.2,
+      eta: 8,
+      trafficLevel: 'clear' as const,
+      isRecommended: true,
+    },
+    {
+      id: 'route2',
+      name: 'Via Indiranagar',
+      distance: (destinationHospital.distance || 5.2) + 1.5,
+      eta: 12,
+      trafficLevel: 'moderate' as const,
+    },
+    {
+      id: 'route3',
+      name: 'Via Koramangala',
+      distance: (destinationHospital.distance || 5.2) + 2.8,
+      eta: 18,
+      trafficLevel: 'heavy' as const,
+    },
+  ] : [];
 
   const handleStatusToggle = () => {
     if (!currentAmbulance) return;
@@ -216,28 +246,14 @@ const AmbulanceDashboard = () => {
             </CardContent>
           </Card>
 
-          {/* Traffic Legend */}
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm">Route Traffic Legend</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-wrap gap-3 text-xs">
-                <div className="flex items-center gap-1">
-                  <div className="w-4 h-1 bg-success rounded" />
-                  <span>Clear</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <div className="w-4 h-1 bg-warning rounded" />
-                  <span>Moderate</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <div className="w-4 h-1 bg-destructive rounded" />
-                  <span>Heavy</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          {/* Route Options */}
+          {routeOptions.length > 0 && (
+            <RouteComparisonPanel
+              routes={routeOptions}
+              selectedRouteId={selectedRouteId}
+              onSelectRoute={setSelectedRouteId}
+            />
+          )}
         </div>
 
         {/* Right Panel - Map */}
@@ -263,9 +279,20 @@ const AmbulanceDashboard = () => {
           <Navigation className="w-4 h-4 mr-2" />
           Start Navigation
         </Button>
+        
+        {/* SOS Button for Traffic Clearance */}
+        {currentAmbulance.status === 'active' && (
+          <SOSButton
+            vehicleId={currentAmbulance.id}
+            vehicleRegistration={currentAmbulance.registrationNumber}
+            vehicleType="ambulance"
+            currentLocation={{ lat: currentAmbulance.currentLat, lng: currentAmbulance.currentLng }}
+          />
+        )}
+        
         <Button 
           variant="outline" 
-          className="flex-1 sm:flex-none border-emergency text-emergency hover:bg-emergency/10"
+          className="flex-1 sm:flex-none border-primary text-primary hover:bg-primary/10"
         >
           <Radio className="w-4 h-4 mr-2" />
           Emergency Broadcast

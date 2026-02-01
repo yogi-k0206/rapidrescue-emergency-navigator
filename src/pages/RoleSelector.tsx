@@ -40,8 +40,8 @@ const RoleSelector = () => {
   const { setRole } = useApp();
 
   const handleRoleSelect = (role: UserRole) => {
-    setRole(role);
-    navigate(`/${role}`);
+    // Navigate to login page for the selected role
+    navigate(`/login/${role}`);
   };
 
   return (

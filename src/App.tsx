@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AppProvider } from "./context/AppContext";
 import RoleSelector from "./pages/RoleSelector";
+import LoginPage from "./pages/LoginPage";
 import AmbulanceDashboard from "./pages/AmbulanceDashboard";
 import TemporaryEmergencyDashboard from "./pages/TemporaryEmergencyDashboard";
 import PoliceDashboard from "./pages/PoliceDashboard";
@@ -22,6 +23,7 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<RoleSelector />} />
+            <Route path="/login/:role" element={<LoginPage />} />
             <Route path="/ambulance" element={<AmbulanceDashboard />} />
             <Route path="/temporary" element={<TemporaryEmergencyDashboard />} />
             <Route path="/police" element={<PoliceDashboard />} />
