@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useApp } from '@/context/AppContext';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import EmergencyMap from '@/components/map/EmergencyMap';
-import SOSButton from '@/components/sos/SOSButton';
+import EnhancedSOSButton from '@/components/sos/EnhancedSOSButton';
 import RouteComparisonPanel from '@/components/route/RouteComparisonPanel';
 import { getHospitalById } from '@/data/demoData';
 import { 
@@ -280,13 +280,14 @@ const AmbulanceDashboard = () => {
           Start Navigation
         </Button>
         
-        {/* SOS Button for Traffic Clearance */}
+        {/* Enhanced SOS Button for Traffic Clearance */}
         {currentAmbulance.status === 'active' && (
-          <SOSButton
+          <EnhancedSOSButton
             vehicleId={currentAmbulance.id}
             vehicleRegistration={currentAmbulance.registrationNumber}
             vehicleType="ambulance"
             currentLocation={{ lat: currentAmbulance.currentLat, lng: currentAmbulance.currentLng }}
+            variant="large"
           />
         )}
         
