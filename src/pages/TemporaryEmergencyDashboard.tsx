@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useApp } from '@/context/AppContext';
 import DashboardHeader from '@/components/layout/DashboardHeader';
 import EmergencyMap from '@/components/map/EmergencyMap';
+import SOSButton from '@/components/sos/SOSButton';
 import { emergencyReasons, getHospitalById, calculateDistance, estimateETA } from '@/data/demoData';
 import { TemporaryEmergencyVehicle } from '@/data/types';
 import { 
@@ -18,7 +19,8 @@ import {
   Zap,
   AlertTriangle,
   Shield,
-  XCircle
+  XCircle,
+  Navigation
 } from 'lucide-react';
 
 type ViewMode = 'request' | 'approving' | 'active';
@@ -392,11 +394,27 @@ const TemporaryEmergencyDashboard = () => {
             </div>
           </div>
 
-          {/* End Emergency Button */}
-          <div className="bg-card border-t border-border p-4">
+          {/* Bottom Action Bar */}
+          <div className="bg-card border-t border-border p-4 flex flex-wrap items-center gap-3">
+            {/* SOS Button for Traffic Clearance */}
+            <SOSButton
+              vehicleId={activeVehicle.id}
+              vehicleRegistration={activeVehicle.registrationNumber}
+              vehicleType="temporary"
+              currentLocation={{ lat: activeVehicle.currentLat, lng: activeVehicle.currentLng }}
+              className="flex-1 sm:flex-none"
+            />
+            
+            <Button 
+              className="flex-1 sm:flex-none bg-primary hover:bg-primary/90"
+            >
+              <Navigation className="w-4 h-4 mr-2" />
+              Start Navigation
+            </Button>
+            
             <Button 
               variant="destructive"
-              className="w-full sm:w-auto"
+              className="flex-1 sm:flex-none"
               onClick={handleEndEmergency}
             >
               <XCircle className="w-4 h-4 mr-2" />
